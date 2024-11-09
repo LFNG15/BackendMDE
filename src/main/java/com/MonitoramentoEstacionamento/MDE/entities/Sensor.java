@@ -16,4 +16,27 @@ public class Sensor {
     private String status = "Ativo";
 
     // Getters e Setters
+    public Integer getSensorId() {
+        return sensorId;
+    }
+
+    public void setSensorId(Integer sensorId) {
+        this.sensorId = sensorId;
+    }
+
+    public Vaga getVaga() {
+        return vaga;
+    }
+
+    public void setVaga(Vaga vaga) {
+        this.vaga = vaga;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }
