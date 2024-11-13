@@ -14,28 +14,27 @@ public class SensorService {
     @Autowired
     private SensorRepository sensorRepository;
 
-    public Sensor salvarSensor(Sensor sensor) {
+    public Sensor save(Sensor sensor) {
         return sensorRepository.save(sensor);
     }
 
-    public List<Sensor> listarTodos() {
+    public List<Sensor> findAll() {
         return sensorRepository.findAll();
     }
 
-    public Optional<Sensor> buscarPorId(Integer id) {
+    public Optional<Sensor> findById(Integer id) {
         return sensorRepository.findById(id);
     }
 
-    public Sensor atualizarSensor(Integer id, Sensor sensorAtualizado) {
-        Sensor sensor = sensorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sensor não encontrado"));
-
-        sensor.setStatus(sensorAtualizado.getStatus());
-
-        return sensorRepository.save(sensor);
+    public Optional<Sensor> update(Integer id, Sensor sensorAtualizado) {
+        return sensorRepository.findById(id)
+                .map(sensor -> {
+                    sensor.setStatus(sensorAtualizado.getStatus());
+                    return sensorRepository.save(sensor);
+                });
     }
 
-    public void deletarSensor(Integer id) {
+    public void deleteById(Integer id) {
         sensorRepository.deleteById(id);
     }
 }

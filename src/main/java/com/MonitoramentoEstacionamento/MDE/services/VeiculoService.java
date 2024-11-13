@@ -14,19 +14,19 @@ public class VeiculoService {
     @Autowired
     private VeiculoRepository veiculoRepository;
 
-    public Veiculo salvarVeiculo(Veiculo veiculo) {
+    public Veiculo save(Veiculo veiculo) {
         return veiculoRepository.save(veiculo);
     }
 
-    public List<Veiculo> listarTodos() {
+    public List<Veiculo> findAll() {
         return veiculoRepository.findAll();
     }
 
-    public Optional<Veiculo> buscarPorId(Integer id) {
+    public Optional<Veiculo> findById(Integer id) {
         return veiculoRepository.findById(id);
     }
 
-    public Veiculo atualizarVeiculo(Integer id, Veiculo veiculoAtualizado) {
+    public Optional<Veiculo> update(Integer id, Veiculo veiculoAtualizado) {
         Veiculo veiculo = veiculoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Veículo não encontrado"));
 
@@ -35,10 +35,10 @@ public class VeiculoService {
         veiculo.setCor(veiculoAtualizado.getCor());
         veiculo.setTipoVeiculo(veiculoAtualizado.getTipoVeiculo());
 
-        return veiculoRepository.save(veiculo);
+        return Optional.of(veiculoRepository.save(veiculo));
     }
 
-    public void deletarVeiculo(Integer id) {
+    public void deleteById(Integer id) {
         veiculoRepository.deleteById(id);
     }
 }

@@ -14,31 +14,30 @@ public class ClienteService {
     @Autowired
     private ClienteRepository clienteRepository;
 
-    public Cliente salvarCliente(Cliente cliente) {
+    public Cliente save(Cliente cliente) {
         return clienteRepository.save(cliente);
     }
 
-    public List<Cliente> listarTodos() {
+    public List<Cliente> findAll() {
         return clienteRepository.findAll();
     }
 
-    public Optional<Cliente> buscarPorId(Integer id) {
+    public Optional<Cliente> findById(Integer id) {
         return clienteRepository.findById(id);
     }
 
-    public Cliente atualizarCliente(Integer id, Cliente clienteAtualizado) {
-        Cliente cliente = clienteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
-
-        cliente.setNome(clienteAtualizado.getNome());
-        cliente.setCpf(clienteAtualizado.getCpf());
-        cliente.setTelefone(clienteAtualizado.getTelefone());
-        cliente.setEmail(clienteAtualizado.getEmail());
-
-        return clienteRepository.save(cliente);
+    public Optional<Cliente> update(Integer id, Cliente clienteAtualizado) {
+        return clienteRepository.findById(id)
+                .map(cliente -> {
+                    cliente.setNome(clienteAtualizado.getNome());
+                    cliente.setCpf(clienteAtualizado.getCpf());
+                    cliente.setTelefone(clienteAtualizado.getTelefone());
+                    cliente.setEmail(clienteAtualizado.getEmail());
+                    return clienteRepository.save(cliente);
+                });
     }
 
-    public void deletarCliente(Integer id) {
+    public void deleteById(Integer id) {
         clienteRepository.deleteById(id);
     }
 }
