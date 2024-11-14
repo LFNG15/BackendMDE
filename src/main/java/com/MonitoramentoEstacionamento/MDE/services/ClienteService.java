@@ -3,6 +3,8 @@ package com.MonitoramentoEstacionamento.MDE.services;
 import com.MonitoramentoEstacionamento.MDE.entities.Cliente;
 import com.MonitoramentoEstacionamento.MDE.repositories.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,7 +16,11 @@ public class ClienteService {
     @Autowired
     private ClienteRepository clienteRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     public Cliente save(Cliente cliente) {
+        cliente.setPassword(passwordEncoder.encode(cliente.getPassword()));
         return clienteRepository.save(cliente);
     }
 
@@ -39,5 +45,10 @@ public class ClienteService {
 
     public void deleteById(Integer id) {
         clienteRepository.deleteById(id);
+    }
+
+    public boolean authenticate(String cpf, String password) {
+        Optional<Cliente> cliente = clienteRepository.findByCpf(cpf);
+        return cliente.isPresent() && passwordEncoder.matches(password, cliente.get().getPassword());
     }
 }
