@@ -47,8 +47,10 @@ public class ClienteService {
         clienteRepository.deleteById(id);
     }
 
-    public boolean authenticate(String cpf, String password) {
-        Optional<Cliente> cliente = clienteRepository.findByCpf(cpf);
-        return cliente.isPresent() && passwordEncoder.matches(password, cliente.get().getPassword());
+    public boolean authenticate(String email, String password) {
+        Optional<Cliente> cliente = clienteRepository.findByEmail(email);
+
+        return cliente.filter(value -> passwordEncoder.matches(password, value.getPassword())).isPresent();
+
     }
 }
