@@ -14,7 +14,8 @@ public class Veiculo {
     private Integer veiculoId;
 
     @Column(nullable = false, length = 10)
-    private String placa;
+    private String placa; //precisa de placa?
+    //se sim, deve haver o mesmo cuidado que se tem com os dados sensiveis do usuario?
 
     @Column(length = 50)
     private String modelo;
