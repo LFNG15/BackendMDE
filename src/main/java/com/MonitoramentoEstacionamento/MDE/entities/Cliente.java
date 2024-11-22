@@ -11,13 +11,13 @@ public class Cliente {
 
     // Getters e Setters
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) //talvez utilizar UID???
     private Integer clienteId;
 
     @Column(nullable = false, length = 50)
     private String nome;
 
-    @Column(nullable = false, length = 14, unique = true)
+    @Column(nullable = false, length = 11, unique = true)
     private String cpf;
 
     @Column(length = 15)

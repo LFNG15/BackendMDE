@@ -1,44 +1,60 @@
 package com.MonitoramentoEstacionamento.MDE.services;
 
+import com.MonitoramentoEstacionamento.MDE.entities.Cliente;
 import com.MonitoramentoEstacionamento.MDE.entities.Veiculo;
+import com.MonitoramentoEstacionamento.MDE.exceptions.UserNotFoundException;
+import com.MonitoramentoEstacionamento.MDE.exceptions.VeiculoJaCadastradoException;
+import com.MonitoramentoEstacionamento.MDE.repositories.ClienteRepository;
 import com.MonitoramentoEstacionamento.MDE.repositories.VeiculoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class VeiculoService {
 
-    @Autowired
-    private VeiculoRepository veiculoRepository;
+    private final VeiculoRepository veiculoRepository;
+    private final ClienteRepository clienteRepository;
 
-    public Veiculo save(Veiculo veiculo) {
+    public Veiculo associarVeiculoAoCliente(Integer clienteId, Veiculo veiculo) {
+
+        Cliente cliente = clienteRepository.findById(clienteId)
+                .orElseThrow(() -> new UserNotFoundException("Cliente não encontrado"));
+        if (veiculoRepository.existsByPlacaAndCliente_ClienteId(veiculo.getPlaca(), clienteId)) {
+            throw new VeiculoJaCadastradoException("Veículo com essa placa já cadastrado para esse cliente");
+        }
+
+        veiculo.setCliente(cliente);
         return veiculoRepository.save(veiculo);
     }
 
-    public List<Veiculo> findAll() {
-        return veiculoRepository.findAll();
+    public List<Veiculo> buscarVeiculosDoCliente(Integer clienteId) {
+        Cliente cliente = clienteRepository.findById(clienteId)
+                .orElseThrow(() -> new UserNotFoundException("Cliente não encontrado"));
+
+        return veiculoRepository.findByCliente_ClienteId(clienteId);
     }
 
-    public Optional<Veiculo> findById(Integer id) {
-        return veiculoRepository.findById(id);
-    }
+    public Veiculo atualizarVeiculo(Integer clienteId, Integer veiculoId, Veiculo veiculo) {
+        Cliente cliente = clienteRepository.findById(clienteId)
+                .orElseThrow(() -> new UserNotFoundException("Cliente não encontrado"));
 
-    public Optional<Veiculo> update(Integer id, Veiculo veiculoAtualizado) {
-        Veiculo veiculo = veiculoRepository.findById(id)
+        Veiculo veiculoExistente = veiculoRepository.findById(veiculoId)
                 .orElseThrow(() -> new RuntimeException("Veículo não encontrado"));
 
-        veiculo.setPlaca(veiculoAtualizado.getPlaca());
-        veiculo.setModelo(veiculoAtualizado.getModelo());
-        veiculo.setCor(veiculoAtualizado.getCor());
-        veiculo.setTipoVeiculo(veiculoAtualizado.getTipoVeiculo());
+        if (!veiculoExistente.getPlaca().equals(veiculo.getPlaca()) &&
+                veiculoRepository.existsByPlacaAndCliente_ClienteId(veiculo.getPlaca(), clienteId)) {
+            throw new VeiculoJaCadastradoException("Veículo com essa placa já cadastrado para o cliente");
+        }
 
-        return Optional.of(veiculoRepository.save(veiculo));
-    }
+        veiculoExistente.setPlaca(veiculo.getPlaca());
+        veiculoExistente.setModelo(veiculo.getModelo());
+        veiculoExistente.setCor(veiculo.getCor());
+        veiculoExistente.setTipoVeiculo(veiculo.getTipoVeiculo());
 
-    public void deleteById(Integer id) {
-        veiculoRepository.deleteById(id);
+        return veiculoRepository.save(veiculoExistente);
     }
 }

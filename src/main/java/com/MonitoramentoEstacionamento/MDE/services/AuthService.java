@@ -4,11 +4,17 @@ import com.MonitoramentoEstacionamento.MDE.dto.LoginRequestDTO;
 import com.MonitoramentoEstacionamento.MDE.dto.RegisterRequestDTO;
 import com.MonitoramentoEstacionamento.MDE.dto.ResponseDTO;
 import com.MonitoramentoEstacionamento.MDE.entities.Cliente;
+import com.MonitoramentoEstacionamento.MDE.exceptions.CPFInvalidoException;
+import com.MonitoramentoEstacionamento.MDE.exceptions.EmailJaCadastradoException;
+import com.MonitoramentoEstacionamento.MDE.exceptions.InvalidCredentialsException;
+import com.MonitoramentoEstacionamento.MDE.exceptions.UserNotFoundException;
 import com.MonitoramentoEstacionamento.MDE.infra.security.TokenService;
 import com.MonitoramentoEstacionamento.MDE.repositories.ClienteRepository;
+import com.MonitoramentoEstacionamento.MDE.utils.CPFUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 
 @Service
 @RequiredArgsConstructor
@@ -19,10 +25,10 @@ public class AuthService {
 
     public ResponseDTO login(LoginRequestDTO body) {
         Cliente cliente = clienteRepository.findByEmail(body.email())
-                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado."));
 
         if (!passwordEncoder.matches(body.password(), cliente.getPassword())) {
-            throw new IllegalArgumentException("Credenciais inválidas.");
+            throw new InvalidCredentialsException("Credenciais inválidas.");
         }
 
         String token = tokenService.generateToken(cliente);
@@ -30,8 +36,14 @@ public class AuthService {
     }
 
     public ResponseDTO register(RegisterRequestDTO body) {
+        String normalizedCpf = body.cpf().replaceAll("\\D", "");
+
+        if (normalizedCpf.length() != 11) {
+            throw new CPFInvalidoException("CPF deve conter exatamente 11 dígitos.");
+        }
+
         if (clienteRepository.findByEmail(body.email()).isPresent()) {
-            throw new IllegalArgumentException("E-mail já cadastrado.");
+            throw new EmailJaCadastradoException("E-mail já cadastrado.");
         }
 
         Cliente newCliente = new Cliente();
@@ -43,8 +55,7 @@ public class AuthService {
 
         clienteRepository.save(newCliente);
 
-        String token = tokenService.generateToken(newCliente);
-        return new ResponseDTO(newCliente.getNome(), token);
+        return new ResponseDTO(newCliente.getNome(), "Usuário registrado com sucesso. Faça login.");
     }
 }
 

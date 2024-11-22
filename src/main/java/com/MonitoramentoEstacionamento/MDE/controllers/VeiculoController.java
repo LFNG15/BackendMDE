@@ -2,7 +2,8 @@ package com.MonitoramentoEstacionamento.MDE.controllers;
 
 import com.MonitoramentoEstacionamento.MDE.entities.Veiculo;
 import com.MonitoramentoEstacionamento.MDE.services.VeiculoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,36 +11,28 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/veiculos")
+@RequiredArgsConstructor
 public class VeiculoController {
 
-    @Autowired
-    private VeiculoService veiculoService;
+    private final VeiculoService veiculoService;
 
-    @GetMapping
-    public List<Veiculo> listarVeiculos() {
-        return veiculoService.findAll();
+    @PostMapping("/associar/{clienteId}")
+    public ResponseEntity<Veiculo> associarVeiculo(@PathVariable Integer clienteId, @RequestBody @Valid Veiculo veiculo) {
+        Veiculo veiculoCadastrado = veiculoService.associarVeiculoAoCliente(clienteId, veiculo);
+        return ResponseEntity.ok(veiculoCadastrado);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Veiculo> buscarVeiculo(@PathVariable Integer id) {
-        return ResponseEntity.of(veiculoService.findById(id));
+    @GetMapping("/cliente/{clienteId}")
+    public ResponseEntity<List<Veiculo>> buscarVeiculos(@PathVariable Integer clienteId) {
+        List<Veiculo> veiculos = veiculoService.buscarVeiculosDoCliente(clienteId);
+        return ResponseEntity.ok(veiculos);
     }
 
-    @PostMapping
-    public Veiculo criarVeiculo(@RequestBody Veiculo veiculo) {
-        return veiculoService.save(veiculo);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Veiculo> atualizarVeiculo(@PathVariable Integer id, @RequestBody Veiculo veiculo) {
-        return veiculoService.update(id, veiculo)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarVeiculo(@PathVariable Integer id) {
-        veiculoService.deleteById(id);
-        return ResponseEntity.noContent().build();
+    @PutMapping("/atualizar/{clienteId}/{veiculoId}")
+    public ResponseEntity<Veiculo> atualizarVeiculo(@PathVariable Integer clienteId,
+                                                    @PathVariable Integer veiculoId,
+                                                    @RequestBody @Valid Veiculo veiculo) {
+        Veiculo veiculoAtualizado = veiculoService.atualizarVeiculo(clienteId, veiculoId, veiculo);
+        return ResponseEntity.ok(veiculoAtualizado);
     }
 }

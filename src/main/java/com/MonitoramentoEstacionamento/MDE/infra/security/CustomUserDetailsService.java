@@ -9,14 +9,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-
+//adicionar ou adaptar o metodo para get dos dados e detalhe do cliente
 @Component
 public class CustomUserDetailsService implements UserDetailsService {
     @Autowired
     private ClienteRepository repository;
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Cliente cliente = this.repository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Cliente cliente = this.repository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Usuario não encontrado"));
         return new org.springframework.security.core.userdetails.User(cliente.getEmail(), cliente.getPassword(), new ArrayList<>());
     }
 }

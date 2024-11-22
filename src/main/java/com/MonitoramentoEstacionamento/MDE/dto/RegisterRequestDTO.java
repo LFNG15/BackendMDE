@@ -2,14 +2,14 @@ package com.MonitoramentoEstacionamento.MDE.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record RegisterRequestDTO(
         @NotBlank(message = "Nome é obrigatório.")
         String nome,
 
-        @NotBlank(message = "CPF é obrigatório.")
-        @Size(min = 11, max = 11, message = "CPF deve ter 11 dígitos.")
+        @Pattern(regexp = "\\d{11}", message = "CPF deve conter apenas 11 dígitos.")
         String cpf,
 
         @NotBlank(message = "Telefone é obrigatório.")

@@ -1,5 +1,6 @@
 package com.MonitoramentoEstacionamento.MDE.infra.security;
 
+import com.MonitoramentoEstacionamento.MDE.exceptions.InvalidTokenException;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
@@ -40,7 +41,7 @@ public class TokenService {
                     .verify(token)
                     .getSubject();
         } catch (JWTVerificationException exception) {
-            return null;
+            throw new InvalidTokenException("Token inválido ou expirado.");
         }
     }
 

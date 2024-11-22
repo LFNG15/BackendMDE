@@ -14,8 +14,7 @@ public class Veiculo {
     private Integer veiculoId;
 
     @Column(nullable = false, length = 10)
-    private String placa; //precisa de placa?
-    //se sim, deve haver o mesmo cuidado que se tem com os dados sensiveis do usuario?
+    private String placa;
 
     @Column(length = 50)
     private String modelo;
@@ -25,5 +24,9 @@ public class Veiculo {
 
     @Column(length = 20)
     private String tipoVeiculo;
+
+    @ManyToOne
+    @JoinColumn(name = "cliente_id", referencedColumnName = "clienteId", nullable = false)
+    private Cliente cliente;
 
 }
