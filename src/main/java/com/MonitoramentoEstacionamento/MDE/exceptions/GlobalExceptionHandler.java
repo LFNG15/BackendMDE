@@ -38,4 +38,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleVeiculoJaCadastrado(VeiculoJaCadastradoException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
+
+    @ExceptionHandler(SensorNotFoundException.class)
+    public ResponseEntity<String> handleSensorNotFoundException(SensorNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(VagaNotFoundException.class)
+    public ResponseEntity<String> handleVagaNotFoundException(VagaNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
 }

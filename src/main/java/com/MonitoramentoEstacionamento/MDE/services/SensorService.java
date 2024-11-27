@@ -1,40 +1,45 @@
 package com.MonitoramentoEstacionamento.MDE.services;
 
 import com.MonitoramentoEstacionamento.MDE.entities.Sensor;
+import com.MonitoramentoEstacionamento.MDE.entities.Vaga;
+import com.MonitoramentoEstacionamento.MDE.exceptions.VagaNotFoundException;
+import com.MonitoramentoEstacionamento.MDE.exceptions.SensorNotFoundException;
 import com.MonitoramentoEstacionamento.MDE.repositories.SensorRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.MonitoramentoEstacionamento.MDE.repositories.VagaRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class SensorService {
 
-    @Autowired
-    private SensorRepository sensorRepository;
+    private final SensorRepository sensorRepository;
+    private final VagaRepository vagaRepository;
 
-    public Sensor save(Sensor sensor) {
+    public Sensor cadastrarSensor(Integer vagaId, Sensor sensor) {
+        Vaga vaga = vagaRepository.findById(vagaId)
+                .orElseThrow(() -> new VagaNotFoundException("Vaga não encontrada"));
+        sensor.setVaga(vaga);
         return sensorRepository.save(sensor);
     }
 
-    public List<Sensor> findAll() {
+    public Sensor atualizarStatusSensor(Integer sensorId, String novoStatus) {
+        Sensor sensor = sensorRepository.findById(sensorId)
+                .orElseThrow(() -> new SensorNotFoundException("Sensor não encontrado"));
+        sensor.setStatus(novoStatus);
+        return sensorRepository.save(sensor);
+    }
+
+    public List<Sensor> listarSensores() {
         return sensorRepository.findAll();
     }
 
-    public Optional<Sensor> findById(Integer id) {
-        return sensorRepository.findById(id);
-    }
-
-    public Optional<Sensor> update(Integer id, Sensor sensorAtualizado) {
-        return sensorRepository.findById(id)
-                .map(sensor -> {
-                    sensor.setStatus(sensorAtualizado.getStatus());
-                    return sensorRepository.save(sensor);
-                });
-    }
-
-    public void deleteById(Integer id) {
-        sensorRepository.deleteById(id);
+    public void removerSensor(Integer sensorId) {
+        if (!sensorRepository.existsById(sensorId)) {
+            throw new SensorNotFoundException("Sensor não encontrado");
+        }
+        sensorRepository.deleteById(sensorId);
     }
 }

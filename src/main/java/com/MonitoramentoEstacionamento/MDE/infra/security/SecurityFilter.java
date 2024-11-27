@@ -27,29 +27,44 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        var token = this.recoverToken(request);
-        var login = tokenService.validateToken(token);
+        try {
+            var token = this.recoverToken(request);
 
-        if (login != null) {
-            Cliente cliente = clienteRepository.findByEmail(login)
-                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+            if (token == null || token.isBlank()) {
+                logger.warn("Token não enviado na requisição");
+                filterChain.doFilter(request, response);
+                return;
+            }
 
-            // aki ce trata como "ROLE_USER" para todos os clientes
-            var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+            var login = tokenService.validateToken(token);
 
-            // quando eu implementar o adm
-            // se o cliente é um administrador (por exemplo, verificando um campo como isAdmin).
-            // Exemplo (futuramente):
-            // if (cliente.isAdmin()) {
-            //    authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN"));
-            // }
+            if (login != null) {
 
-            var authentication = new UsernamePasswordAuthenticationToken(cliente, null, authorities);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                Cliente cliente = clienteRepository.findByEmail(login)
+                        .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
+
+
+                var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+
+
+                var authentication = new UsernamePasswordAuthenticationToken(cliente, null, authorities);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+
+        } catch (Exception e) {
+            logger.error("Erro ao processar autenticação: {}");
+
+
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Erro na autenticação: " + e.getMessage());
+            return;
         }
+
 
         filterChain.doFilter(request, response);
     }
+
+
 
     private String recoverToken(HttpServletRequest request){
         var authHeader = request.getHeader("Authorization");

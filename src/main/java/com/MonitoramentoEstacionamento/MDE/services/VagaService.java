@@ -1,36 +1,47 @@
 package com.MonitoramentoEstacionamento.MDE.services;
 
 import com.MonitoramentoEstacionamento.MDE.entities.Vaga;
-import com.MonitoramentoEstacionamento.MDE.entities.Veiculo;
 import com.MonitoramentoEstacionamento.MDE.repositories.VagaRepository;
-import com.MonitoramentoEstacionamento.MDE.repositories.VeiculoRepository;
-import org.apache.velocity.exception.ResourceNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
+@RequiredArgsConstructor
 public class VagaService {
 
-    @Autowired
-    private VagaRepository vagaRepository;
+    private final VagaRepository vagaRepository;
 
-    @Autowired
-    private VeiculoRepository veiculoRepository;
+    public List<Vaga> listarVagas() {
+        return vagaRepository.findAll();
+    }
 
-    public String ocuparVagaComVeiculo(Integer vagaId, Integer veiculoId) {
-        Vaga vaga = vagaRepository.findById(vagaId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vaga não encontrada"));
+    public Vaga buscarPorId(Integer id) {
+        return vagaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Vaga não encontrada com o ID: " + id));
+    }
 
-        Veiculo veiculo = veiculoRepository.findById(veiculoId)
-                .orElseThrow(() -> new ResourceNotFoundException("Veículo não encontrado"));
+    public List<Vaga> listarPorStatus(String status) {
+        return vagaRepository.findByStatus(status);
+    }
 
-        if (!vaga.getTipoVaga().equalsIgnoreCase(veiculo.getTipoVeiculo())) {
-            throw new IllegalArgumentException("Tipo de veículo não corresponde ao tipo da vaga.");
-        }
+    public Vaga salvar(Vaga vaga) {
+        return vagaRepository.save(vaga);
+    }
 
-        vaga.setStatus("Ocupado");
-        vagaRepository.save(vaga);
+    public Vaga atualizar(Integer id, Vaga vagaAtualizada) {
+        Vaga vaga = buscarPorId(id);
+        vaga.setNumeroVaga(vagaAtualizada.getNumeroVaga());
+        vaga.setTipoVaga(vagaAtualizada.getTipoVaga());
+        vaga.setStatus(vagaAtualizada.getStatus());
+        vaga.setAndar(vagaAtualizada.getAndar());
+        return vagaRepository.save(vaga);
+    }
 
-        return "Vaga ocupada com sucesso!";
+    public void deletar(Integer id) {
+        Vaga vaga = buscarPorId(id);
+        vagaRepository.delete(vaga);
     }
 }

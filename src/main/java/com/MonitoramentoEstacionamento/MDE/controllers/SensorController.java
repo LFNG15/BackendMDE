@@ -2,7 +2,8 @@ package com.MonitoramentoEstacionamento.MDE.controllers;
 
 import com.MonitoramentoEstacionamento.MDE.entities.Sensor;
 import com.MonitoramentoEstacionamento.MDE.services.SensorService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,34 +11,34 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/sensores")
+@RequiredArgsConstructor
 public class SensorController {
 
-    @Autowired
-    private SensorService sensorService;
+    private final SensorService sensorService;
+
+    @PostMapping("/cadastrar/{vagaId}")
+    public ResponseEntity<Sensor> cadastrarSensor(@PathVariable Integer vagaId, @RequestBody @Valid Sensor sensor) {
+        Sensor novoSensor = sensorService.cadastrarSensor(vagaId, sensor);
+        return ResponseEntity.ok(novoSensor);
+    }
+
+    @PutMapping("/atualizar-status/{sensorId}")
+    public ResponseEntity<Sensor> atualizarStatusViaHardware(
+            @PathVariable Integer sensorId,
+            @RequestParam String status) {
+        Sensor sensorAtualizado = sensorService.atualizarStatusSensor(sensorId, status);
+        return ResponseEntity.ok(sensorAtualizado);
+    }
 
     @GetMapping
-    public List<Sensor> listarSensores() {
-        return sensorService.findAll();
+    public ResponseEntity<List<Sensor>> listarSensores() {
+        List<Sensor> sensores = sensorService.listarSensores();
+        return ResponseEntity.ok(sensores);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Sensor> buscarSensor(@PathVariable Integer id) {
-        return ResponseEntity.of(sensorService.findById(id));
-    }
-
-    @PostMapping
-    public Sensor criarSensor(@RequestBody Sensor sensor) {
-        return sensorService.save(sensor);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Sensor> atualizarSensor(@PathVariable Integer id, @RequestBody Sensor sensor) {
-        return ResponseEntity.of(sensorService.update(id, sensor));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarSensor(@PathVariable Integer id) {
-        sensorService.deleteById(id);
+    @DeleteMapping("/remover/{sensorId}")
+    public ResponseEntity<Void> removerSensor(@PathVariable Integer sensorId) {
+        sensorService.removerSensor(sensorId);
         return ResponseEntity.noContent().build();
     }
 }
