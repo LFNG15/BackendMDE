@@ -4,9 +4,7 @@ import com.MonitoramentoEstacionamento.MDE.dto.LoginRequestDTO;
 import com.MonitoramentoEstacionamento.MDE.dto.RegisterRequestDTO;
 import com.MonitoramentoEstacionamento.MDE.dto.ResponseDTO;
 import com.MonitoramentoEstacionamento.MDE.services.AuthService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,14 +19,22 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<ResponseDTO> login(@RequestBody @Valid LoginRequestDTO body) {
-        ResponseDTO response = authService.login(body);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+    public ResponseEntity<ResponseDTO> login(@RequestBody LoginRequestDTO body) {
+        try {
+            ResponseDTO response = authService.login(body);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ResponseDTO> register(@RequestBody @Valid RegisterRequestDTO body) {
-        ResponseDTO response = authService.register(body);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<ResponseDTO> register(@RequestBody RegisterRequestDTO body) {
+        try {
+            ResponseDTO response = authService.register(body);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

@@ -1,18 +1,20 @@
 package com.MonitoramentoEstacionamento.MDE.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Setter
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(of = "clienteId")
 @Entity
+@Table(name = "cliente")
 public class Cliente {
 
-    // Getters e Setters
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //talvez utilizar UID???
-    private Integer clienteId;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long clienteId;
 
     @Column(nullable = false, length = 50)
     private String nome;
@@ -23,7 +25,7 @@ public class Cliente {
     @Column(length = 15)
     private String telefone;
 
-    @Column(length = 50)
+    @Column(nullable = false, length = 50, unique = true)
     private String email;
 
     @Column(nullable = false)

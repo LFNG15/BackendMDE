@@ -1,61 +1,53 @@
 package com.MonitoramentoEstacionamento.MDE.services;
 
+import com.MonitoramentoEstacionamento.MDE.entities.Cliente;
 import com.MonitoramentoEstacionamento.MDE.dto.LoginRequestDTO;
 import com.MonitoramentoEstacionamento.MDE.dto.RegisterRequestDTO;
 import com.MonitoramentoEstacionamento.MDE.dto.ResponseDTO;
-import com.MonitoramentoEstacionamento.MDE.entities.Cliente;
-import com.MonitoramentoEstacionamento.MDE.exceptions.CPFInvalidoException;
 import com.MonitoramentoEstacionamento.MDE.exceptions.EmailJaCadastradoException;
-import com.MonitoramentoEstacionamento.MDE.exceptions.InvalidCredentialsException;
-import com.MonitoramentoEstacionamento.MDE.exceptions.UserNotFoundException;
 import com.MonitoramentoEstacionamento.MDE.infra.security.TokenService;
 import com.MonitoramentoEstacionamento.MDE.repositories.ClienteRepository;
-import com.MonitoramentoEstacionamento.MDE.utils.CPFUtils;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
+
     private final ClienteRepository clienteRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
 
+    public AuthService(ClienteRepository clienteRepository, PasswordEncoder passwordEncoder, TokenService tokenService) {
+        this.clienteRepository = clienteRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.tokenService = tokenService;
+    }
+
     public ResponseDTO login(LoginRequestDTO body) {
-        Cliente cliente = clienteRepository.findByEmail(body.email())
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado."));
-
-        if (!passwordEncoder.matches(body.password(), cliente.getPassword())) {
-            throw new InvalidCredentialsException("Credenciais inválidas.");
+        Cliente cliente = this.clienteRepository.findByEmail(body.email()).orElseThrow(() -> new RuntimeException("User not found"));
+        if(passwordEncoder.matches(body.password(), cliente.getPassword())) {
+            String token = this.tokenService.generateToken(cliente);
+            return new ResponseDTO(cliente.getNome(), token);
         }
-
-        String token = tokenService.generateToken(cliente);
-        return new ResponseDTO(cliente.getNome(), token);
+        throw new RuntimeException("Invalid credentials");
     }
 
     public ResponseDTO register(RegisterRequestDTO body) {
-        String normalizedCpf = body.cpf().replaceAll("\\D", "");
+        Optional<Cliente> user = this.clienteRepository.findByEmail(body.getEmail());
 
-        if (normalizedCpf.length() != 11) {
-            throw new CPFInvalidoException("CPF deve conter exatamente 11 dígitos.");
-        }
-
-        if (clienteRepository.findByEmail(body.email()).isPresent()) {
-            throw new EmailJaCadastradoException("E-mail já cadastrado.");
+        if (user.isPresent()) {
+            throw new EmailJaCadastradoException("O email já está em uso");
         }
 
         Cliente newCliente = new Cliente();
-        newCliente.setNome(body.nome());
-        newCliente.setCpf(body.cpf());
-        newCliente.setTelefone(body.telefone());
-        newCliente.setEmail(body.email());
-        newCliente.setPassword(passwordEncoder.encode(body.password()));
+        newCliente.setPassword(passwordEncoder.encode(body.getPassword()));
+        newCliente.setEmail(body.getEmail());
+        newCliente.setNome(body.getNome());
+        this.clienteRepository.save(newCliente);
 
-        clienteRepository.save(newCliente);
-
-        return new ResponseDTO(newCliente.getNome(), "Usuário registrado com sucesso. Faça login.");
+        String token = this.tokenService.generateToken(newCliente);
+        return new ResponseDTO(newCliente.getNome(), token);
     }
 }
-
